@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "time_context": { 
+      "command": "uvx", 
+      "args": ["mcp-server-time"] 
+    },
+    "twilio_manager_mcp": {
+      "command": "uv",
+      "args": ["run", "mcp", "run", "./twilio_manager_mcp.py"],
+      "env": {
+        "TWILIO_ACCOUNT_SID": "AC00000000000000000000000000000000",
+        "TWILIO_AUTH_TOKEN": "00000000000000000000000000000000"
+      }
+    },
+    "twilio_manager_mcp_with_twilio": {
+      "command": "uv",
+      "args": ["--with", "twilio", "run", "mcp", "run", "./twilio_manager_mcp.py"],
+      "env": {
+        "TWILIO_ACCOUNT_SID": "AC00000000000000000000000000000000",
+        "TWILIO_AUTH_TOKEN": "00000000000000000000000000000000"
+      }
+    }
+  }
+}

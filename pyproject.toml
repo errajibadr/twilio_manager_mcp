@@ -1,0 +1,11 @@
+[project]
+name = "twilio-manager-mcp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]>=1.4.1",
+    "twilio>=9.5.1",
+]
+
