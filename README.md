@@ -1,20 +1,3 @@
-I'll create a README for your Twilio Manager MCP project, following a similar structure to the Blender MCP example.
-
-Ran tool
-
-Read file: twilio_manager_mcp.py
-
-Read file: api/async_twilio_api.py
-
-Read file: client_twilio_manager.py
-
-Read file: .env.example
-
-Read file: api/async_twilio_wrapper.py
-
-Read file: first_mcp.py
-Here's a README for your Twilio Manager MCP project:
-
 # TwilioManager MCP - Twilio Model Context Protocol Integration
 
 TwilioManager MCP connects Claude AI to Twilio through the Model Context Protocol (MCP), enabling Claude to interact directly with Twilio's API. This integration allows for prompt-assisted Twilio account management, subaccount creation, phone number management, and regulatory compliance handling.
