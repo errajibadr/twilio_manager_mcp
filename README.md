@@ -2,6 +2,8 @@
 
 TwilioManager MCP connects Claude AI to Twilio through the Model Context Protocol (MCP), enabling Claude to interact directly with Twilio's API. This integration allows for prompt-assisted Twilio account management, subaccount creation, phone number management, and regulatory compliance handling.
 
+
+    
 ## Features
 
 - **Two-way communication**: Connect Claude AI to Twilio through a socket-based server
@@ -23,7 +25,7 @@ The system consists of two main components:
 ### Prerequisites
 
 - Python 3.10 or newer
-- `uv` package manager:
+- `uv` 
 
 #### If you're on Mac:
 ```
@@ -57,10 +59,21 @@ Go to Claude > Settings > Developer > Edit Config > `claude_desktop_config.json`
 
 ### Cursor Integration
 
-Run twilio-manager-mcp without installing it permanently through uvx. Go to Cursor Settings > MCP and paste this as a command:
+Run twilio-manager-mcp without installing it permanently through uvx. Go to Cursor Settings > MCP and paste this in the Json
 
 ```
-uvx twilio-manager-mcp
+{
+    "mcpServers":{
+        "twilio_manager_mcp": {
+            "command": "uvx",
+            "args": ["twilio-manager-mcp"],
+            "env": {
+                "TWILIO_ACCOUNT_SID": "AC00000000000000000000000000000000",
+                "TWILIO_AUTH_TOKEN": "00000000000000000000000000000000"
+            }
+        }
+    }
+)
 ```
 
 ⚠️ Only run one instance of the MCP server (either on Cursor or Claude Desktop), not both

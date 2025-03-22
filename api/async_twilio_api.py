@@ -40,7 +40,9 @@ class AsyncTwilioManager:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self._http_client.close_session()
 
-    async def list_subaccounts(self, friendly_name: Optional[str] = None) -> List[Dict]:
+    async def list_subaccounts(
+        self, friendly_name: Optional[str] = None, with_token: bool = False
+    ) -> List[Dict]:
         """
         List all subaccounts or filter by friendly name.
 
@@ -60,7 +62,7 @@ class AsyncTwilioManager:
                 {
                     "sid": account.sid,
                     "friendly_name": account.friendly_name,
-                    # "auth_token": account.auth_token,
+                    "auth_token": account.auth_token if with_token else None,
                 }
                 for account in accounts
             ]

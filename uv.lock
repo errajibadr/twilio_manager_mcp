@@ -612,18 +612,25 @@ wheels = [
 
 [[package]]
 name = "twilio-manager-mcp"
-version = "0.1.0"
-source = { virtual = "." }
+version = "0.1.6"
+source = { editable = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "mcp", extra = ["cli"] },
+    { name = "python-dotenv" },
     { name = "twilio" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.8.0" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.4.1" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "twilio", specifier = ">=9.5.1" },
 ]
+
+[package.metadata.requires-dev]
+dev = []
 
 [[package]]
 name = "typer"

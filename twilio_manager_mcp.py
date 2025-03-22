@@ -1,59 +1,114 @@
 # twilio_manager_mcp.py
 import os
-from typing import Dict, List, Optional
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from api.async_twilio_api import AsyncTwilioManager
 
-load_dotenv()
-
 # Créer un serveur MCP
-mcp = FastMCP("Twilio Manager MCP")
+mcp = FastMCP(
+    "Twilio Manager MCP",
+    instructions="Twilio Manager through the Model Context Protocol",
+)
 
 # Twilio credentials - should be configured properly in production
+load_dotenv()
+
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 
 assert TWILIO_ACCOUNT_SID is not None
 assert TWILIO_AUTH_TOKEN is not None
 
-# Create a global AsyncTwilioManager instance
 async_twilio_manager = AsyncTwilioManager(
     account_sid=TWILIO_ACCOUNT_SID, auth_token=TWILIO_AUTH_TOKEN
 )
 
 
-@mcp.tool()
-async def list_twilio_subaccounts(friendly_name: Optional[str] = None) -> List[Dict]:
+@mcp.tool(
+    name="list_twilio_subaccounts",
+    description="List all Twilio subaccounts or filter by friendly name. Provide an empty string for all subaccounts",
+)
+async def list_all_twilio_subaccounts() -> list[dict]:
     """
-    Liste tous les sous-comptes Twilio ou filtre par nom convivial.
-
+    List all Twilio subaccounts or filter by friendly name.
     Args:
-        friendly_name: Filtre optionnel par nom convivial
-
+        friendly_name: Optional filter by friendly name (empty string for all)
     Returns:
-        Liste des détails des sous-comptes
+        List of subaccount details
     """
     async with async_twilio_manager:
-        return await async_twilio_manager.list_subaccounts(friendly_name)
+        return await async_twilio_manager.list_subaccounts()
 
 
-@mcp.tool()
-async def get_account_phone_numbers(account_sid: Optional[str] = None) -> List[Dict]:
+async def get_all_phone_numbers() -> list[dict]:
     """
-    Récupère tous les numéros de téléphone associés à un compte ou sous-compte.
+    Get all phone numbers associated with a Twilio subaccount
+    """
+    async with async_twilio_manager:
+        return await async_twilio_manager.get_account_numbers()
 
+
+@mcp.tool(
+    name="get_account_phone_numbers",
+    description="Get all phone numbers associated with a Twilio subaccount",
+)
+async def get_account_phone_numbers_for_subaccount(account_sid: str) -> list[dict]:
+    """
+    Get all phone numbers associated with a Twilio subaccount
     Args:
-        account_sid: L'identifiant SID du sous-compte. Si non fourni, utilise le compte principal.
-
+        account_sid: The SID of the Twilio subaccount
     Returns:
-        Liste des numéros de téléphone et leurs détails
+        List of phone numbers and their details
     """
     async with async_twilio_manager:
         return await async_twilio_manager.get_account_numbers(account_sid)
 
 
-if __name__ == "__main__":
+@mcp.tool(
+    name="get_all_phone_numbers",
+    description="Get all phone numbers associated with a Twilio subaccount",
+)
+async def transfer_phone_number(
+    source_account_sid: str,
+    phone_number_sid: str,
+    target_account_sid: str,
+) -> dict:
+    """
+    Transfer a phone number from one Twilio subaccount to another
+    Args:
+        source_account_sid: The SID of the Twilio subaccount to transfer the phone number from
+        phone_number_sid: The SID of the phone number to transfer
+        target_account_sid: The SID of the Twilio subaccount to transfer the phone number to
+    Returns:
+        Dictionary containing the transfer details
+    """
+    async with async_twilio_manager:
+        return await async_twilio_manager.transfer_phone_number(
+            source_account_sid, phone_number_sid, target_account_sid
+        )
+
+
+@mcp.tool(
+    name="get_regulatory_bundle_sid",
+    description="Get the regulatory bundle SID for a Twilio subaccount",
+)
+async def get_regulatory_bundle_sid(subaccount_sid: str) -> str | None:
+    """
+    Get the regulatory bundle SID for a Twilio subaccount
+    Args:
+        subaccount_sid: The SID of the Twilio subaccount
+    Returns:
+        The regulatory bundle SID for the Twilio subaccount
+    """
+    async with async_twilio_manager:
+        return await async_twilio_manager.get_bundle_sid(subaccount_sid)
+
+
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

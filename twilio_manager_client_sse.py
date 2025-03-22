@@ -1,23 +1,17 @@
 # client_first_mcp.py
 import asyncio
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-
-# Créer les paramètres pour une connexion stdio
-server_params = StdioServerParameters(
-    command="uv",  # Exécutable
-    args=["run", "mcp", "run", "./twilio_manager_mcp.py"],  # Arguments de ligne de commande
-)
+from mcp import ClientSession
+from mcp.client.sse import sse_client
 
 
 async def run():
     print("Connexion au serveur MCP 'Mon Premier Serveur MCP'...")
 
     # Établir une connexion avec le serveur MCP
-    async with stdio_client(server_params) as (read, write):
+    async with sse_client(url="http://localhost:8000/sse") as (read_stream, write_stream):
         # Créer une session client
-        async with ClientSession(read, write) as session:
+        async with ClientSession(read_stream, write_stream) as session:
             # Initialiser la connexion
             await session.initialize()
 
