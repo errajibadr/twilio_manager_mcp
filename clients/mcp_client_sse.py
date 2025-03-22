@@ -2,7 +2,8 @@ import asyncio
 
 from dotenv import load_dotenv
 from mcp import ClientSession
-from mcp.client.sse import sse_client
+
+from clients.base_sse_client import sse_client
 
 load_dotenv()  # load environment variables from .env
 
@@ -31,7 +32,7 @@ class MCPClientSSE:
     async def connect_to_sse_server(self, server_url: str):
         """Connect to an MCP server running with SSE transport"""
         # Create and store the persistent connections
-        self._streams_context = sse_client(url=server_url)
+        self._streams_context = sse_client(url=server_url, verify_ssl=False)
         self._streams = await self._streams_context.__aenter__()
 
         self._session_context = ClientSession(*self._streams)
@@ -64,7 +65,7 @@ async def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--server-url", type=str, default="http://localhost:8000/sse")
+    parser.add_argument("--server-url", type=str, default="https://localhost/sse")
     args = parser.parse_args()
 
     async with MCPClientSSE(server_url=args.server_url) as session:

@@ -1,4 +1,8 @@
-# Move your existing AsyncTwilioManager class here
+"""
+Asynchronous Twilio API Manager implementation.
+This module provides an async wrapper around the Twilio API for efficient operations.
+"""
+
 import asyncio
 import logging
 import os
@@ -12,6 +16,8 @@ _logger = logging.getLogger(__name__)
 
 
 class AsyncTwilioManager:
+    """Asynchronous wrapper for Twilio API operations."""
+
     def __init__(
         self,
         account_sid: str,
@@ -19,12 +25,14 @@ class AsyncTwilioManager:
         timeout: Optional[float] = None,
         logger: logging.Logger = _logger,
     ):
+        """Initialize the Twilio manager with credentials."""
         self.account_sid = account_sid
         self.auth_token = auth_token
         self.timeout = timeout
         self.logger = logger
         self._http_client = AsyncTwilioHttpClient()
         self._client = None
+        self._lock = asyncio.Lock()
 
     @property
     def client(self) -> Client:
@@ -34,11 +42,15 @@ class AsyncTwilioManager:
         return self._client
 
     async def __aenter__(self):
+        """Async context manager entry."""
+        await self._lock.acquire()
         await self._http_client.init_session()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
         await self._http_client.close_session()
+        self._lock.release()
 
     async def list_subaccounts(
         self, friendly_name: Optional[str] = None, with_token: bool = False

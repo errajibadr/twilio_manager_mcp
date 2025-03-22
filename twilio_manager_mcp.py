@@ -102,6 +102,7 @@ async def get_regulatory_bundle_sid(subaccount_sid: str) -> str | None:
     Returns:
         The regulatory bundle SID for the Twilio subaccount
     """
+    print(f"Getting regulatory bundle SID for subaccount {subaccount_sid}")
     async with async_twilio_manager:
         return await async_twilio_manager.get_bundle_sid(subaccount_sid)
 

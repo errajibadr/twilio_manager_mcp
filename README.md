@@ -1,167 +1,246 @@
-# TwilioManager MCP - Twilio Model Context Protocol Integration
+# Twilio Manager MCP
 
-TwilioManager MCP connects Claude AI to Twilio through the Model Context Protocol (MCP), enabling Claude to interact directly with Twilio's API. This integration allows for prompt-assisted Twilio account management, subaccount creation, phone number management, and regulatory compliance handling.
+A Model Context Protocol (MCP) implementation for managing Twilio resources. This package provides tools for managing Twilio subaccounts, phone numbers, and regulatory bundles through a standardized MCP interface.
 
-
-    
 ## Features
 
-- **Two-way communication**: Connect Claude AI to Twilio through a socket-based server
-- **Subaccount management**: Create, list, and manage Twilio subaccounts
-- **Phone number control**: Transfer, configure, and manage phone numbers across accounts
-- **Regulatory compliance**: Manage regulatory bundles and compliance requirements
-- **Address management**: Create and manage addresses for regulatory compliance
-- **Asynchronous API**: High-performance async implementation of Twilio API interactions
-
-## Components
-
-The system consists of two main components:
-
-- **MCP Server** (`twilio_manager_mcp.py`): A Python server that implements the Model Context Protocol and provides tools for Twilio management
-- **Async Twilio API** (`api/async_twilio_api.py`): An asynchronous wrapper around the Twilio API for efficient operations
+- List Twilio subaccounts
+- Get phone numbers associated with subaccounts
+- Transfer phone numbers between subaccounts
+- Get regulatory bundle SIDs
+- Support for both direct and Server-Sent Events (SSE) communication
+- Integration with Claude Desktop, Cursor, and other MCP-compatible tools
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.10 or newer
-- `uv` 
+#### Install uv
 
-#### If you're on Mac:
-```
+On macOS:
+```bash
 brew install uv
 ```
 
-#### On Windows:
-```
+On Windows:
+```powershell
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-set Path=C:\Users\[USERNAME]\.local\bin;%Path%
 ```
 
-⚠️ Do not proceed before installing UV
+On Linux:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-### Claude for Desktop Integration
+### Project Setup
 
-Go to Claude > Settings > Developer > Edit Config > `claude_desktop_config.json` to include the following:
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/twilio_manager_mcp.git
+cd twilio_manager_mcp
+```
+
+2. Install dependencies using uv:
+```bash
+uv sync
+```
+
+## Configuration
+
+1. Create a `.env` file in the root directory with your Twilio credentials:
+
+```env
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+```
+
+2. Configure MCP for your tool (Cursor, Claude Desktop, etc.) by creating a `.cursor/mcp.json` file:
 
 ```json
 {
-    "mcpServers": {
-        "twilio": {
-            "command": "uvx",
-            "args": [
-                "twilio-manager-mcp"
-            ]
-        }
+  "mcpServers": { 
+    "twilio_manager_mcp_abs": {
+      "command": "uv",
+      "args": ["--directory", "/path/to/twilio_manager_mcp", "run", "mcp", "run", "./twilio_manager_mcp.py"],
+      "env": {
+        "TWILIO_ACCOUNT_SID": "your_account_sid",
+        "TWILIO_AUTH_TOKEN": "your_auth_token"
+      }
+    },
+    "twilio_manager_mcp_uvx": {
+      "command": "uvx",
+      "args": [ "twilio-manager-mcp" ],
+      "env": {
+        "TWILIO_ACCOUNT_SID": "your_account_sid",
+        "TWILIO_AUTH_TOKEN": "your_auth_token"
+      }
+    },
+    "twilio_manager_mcp_sse": {
+      "url": "http://localhost:8000/sse"
     }
+  }
 }
 ```
 
-### Cursor Integration
+## Docker
 
-Run twilio-manager-mcp without installing it permanently through uvx. Go to Cursor Settings > MCP and paste this in the Json
+You can run Twilio Manager MCP using Docker for easier deployment and management.
 
+### Using Docker Compose
+
+The project includes a Docker Compose configuration that sets up:
+- The Twilio Manager MCP service
+- A Traefik reverse proxy with automatic HTTPS
+
+1. Configure environment variables in your `.env` file:
+
+```env
+# Twilio credentials
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+
+# Domain configuration for Traefik
+DOMAIN_NAME=yourdomain.com
+ACME_EMAIL=user@yourdomain.com
+
+# Address details (optional)
+ADDRESS_CUSTOMER_NAME=
+ADDRESS_FRIENDLY_NAME=
+ADDRESS_STREET=
+ADDRESS_CITY=
+ADDRESS_REGION=
+ADDRESS_POSTAL_CODE=
+ADDRESS_ISO_COUNTRY=
 ```
-{
-    "mcpServers":{
-        "twilio_manager_mcp": {
-            "command": "uvx",
-            "args": ["twilio-manager-mcp"],
-            "env": {
-                "TWILIO_ACCOUNT_SID": "AC00000000000000000000000000000000",
-                "TWILIO_AUTH_TOKEN": "00000000000000000000000000000000"
-            }
-        }
-    }
-)
+
+2. Start the services:
+
+```bash
+docker-compose up -d
 ```
 
-⚠️ Only run one instance of the MCP server (either on Cursor or Claude Desktop), not both
+The application will be available at your configured domain with HTTPS enabled.
 
-### Environment Setup
+### Using Docker Without Docker Compose
 
-1. Clone this repository
-2. Copy `.env.example` to `.env` and fill in your Twilio credentials:
-   ```
-   TWILIO_ACCOUNT_SID=your_account_sid
-   TWILIO_AUTH_TOKEN=your_auth_token
-   ```
-3. Install dependencies:
-   ```
-   uv pip install -e .
-   ```
+If you prefer to run just the Twilio Manager MCP container without Traefik:
+
+1. Build the Docker image:
+
+```bash
+docker build -t twilio-manager-mcp .
+```
+
+2. Run the container:
+
+```bash
+docker run -p 8000:8000 \
+  -e TWILIO_ACCOUNT_SID=your_account_sid \
+  -e TWILIO_AUTH_TOKEN=your_auth_token \
+  twilio-manager-mcp
+```
+
+The SSE endpoint will be available at `http://localhost:8000/sse`.
 
 ## Usage
 
-### Starting the Connection
+### With Cursor, Claude Desktop, or other MCP-compatible tools
 
-1. Make sure your credentials are set in the `.env` file
-2. Start the MCP server:
-   ```
-   uvx twilio-manager-mcp
-   ```
-3. In Claude, look for the Twilio MCP tool icon in the toolbar
+You have three options to use this MCP:
 
-### Using with Claude
+1. **Direct UVX Integration** (Recommended):
+   - Use the `twilio_manager_mcp_uvx` configuration
+   - This is the simplest method and works out of the box with uvx
 
-Once the config file has been set on Claude and the MCP server is running, you will see a tool icon for the Twilio Manager MCP.
+2. **Direct UV Integration**:
+   - Use the `twilio_manager_mcp_abs` configuration
+   - Requires specifying the full path to your installation
 
-### Capabilities
+3. **SSE Server**:
+   - Use the `twilio_manager_mcp_sse` configuration
+   - Start the SSE server first:
+     ```bash
+     uvicorn twilio_manager_mcp_sse:app --host 0.0.0.0 --port 8000
+     ```
 
-- List and filter Twilio subaccounts
-- View phone numbers associated with accounts
-- Transfer phone numbers between accounts
-- Create and manage addresses
-- Handle regulatory compliance and bundles
-- Execute comprehensive Twilio account management tasks
+### Available Tools
 
-### Example Commands
+| Tool Name | Description |
+|-----------|-------------|
+| `list_twilio_subaccounts` | List all Twilio subaccounts |
+| `get_account_phone_numbers` | Get phone numbers for a specific subaccount |
+| `get_all_phone_numbers` | Transfer phone numbers between subaccounts |
+| `get_regulatory_bundle_sid` | Get regulatory bundle SID for a subaccount |
 
-Here are some examples of what you can ask Claude to do:
+### Example Usage in Cursor/Claude Desktop
 
-- "List all my Twilio subaccounts"
-- "Show all phone numbers on my main account"
-- "Transfer phone number X from account A to account B"
-- "Create a new address for regulatory compliance"
-- "Duplicate a regulatory bundle to a subaccount"
-- "Show all phone numbers of a specific type"
+Once configured, you can use the tools directly in your AI assistant conversations:
 
-## Troubleshooting
+1. List all subaccounts:
+```python
+# The AI will automatically use the MCP to list all subaccounts
+# No need to write code - just ask "List all Twilio subaccounts"
+```
 
-- **Connection issues**: Make sure the MCP server is running, and the MCP server is configured on Claude
-- **Authentication errors**: Verify your Twilio credentials in the `.env` file
-- **Rate limiting**: Twilio API has rate limits; consider adding delays between operations if hitting limits
-- **Timeout errors**: Try simplifying your requests or breaking them into smaller steps
+2. Get phone numbers for a subaccount:
+```python
+# Simply ask: "Show me all phone numbers for subaccount AC..."
+```
 
-## Technical Details
+### Direct Python Usage
 
-### Communication Protocol
+For direct programmatic usage:
 
-The system uses a JSON-based protocol over TCP sockets:
+```python
+from mcp import ClientSession
+from clients.client import MCPClient
 
-- Commands are sent as JSON objects with a type and optional params
-- Responses are JSON objects with status and result or message
+async with MCPClient("uvx", ["twilio-manager-mcp"], env={}) as session:
+    # List available tools
+    tools = (await session.list_tools()).tools
+    
+    # List all subaccounts
+    subaccounts = await session.invoke("list_twilio_subaccounts")
+    
+    # Get phone numbers for a subaccount
+    numbers = await session.invoke("get_account_phone_numbers", {"account_sid": "AC..."})
+```
 
-### Async Implementation
+## Project Structure
 
-The Twilio API wrapper uses Python's asyncio for high-performance, non-blocking operations:
+```
+twilio_manager_mcp/
+├── api/
+│   └── async_twilio_api.py    # Async Twilio API implementation
+├── clients/
+│   ├── client.py              # Direct MCP client implementation
+│   └── client_sse.py          # SSE client implementation
+├── twilio_manager_mcp.py      # Core MCP server implementation
+├── twilio_manager_mcp_sse.py  # SSE server wrapper
+├── requirements.txt           # Project dependencies
+└── README.md                 # This file
+```
 
-- Custom `AsyncTwilioHttpClient` for managing HTTP requests asynchronously
-- Context manager pattern for resource management
-- Error handling and retry logic
+## Development
 
-## Limitations & Security Considerations
+For development, you can use uv's virtual environment management:
 
-- The system requires valid Twilio credentials with appropriate permissions
-- Keep your `.env` file secure and never commit it to version control
-- Consider adding additional validation for critical operations
-- API keys should be rotated regularly for security
-- Some operations may require multiple steps to complete successfully
+```bash
+# Create a virtual environment
+uv venv
+
+# Activate the virtual environment
+source .venv/bin/activate  # On Unix
+.venv\Scripts\activate     # On Windows
+
+# Install dependencies in development mode
+uv pip install -e .
+```
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Disclaimer
+## License
 
-This tool interacts with a paid service (Twilio). Be aware that API calls made through this tool may incur charges to your Twilio account. Always test in development environments before using in production.
+MIT License

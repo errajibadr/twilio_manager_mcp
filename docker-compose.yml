@@ -1,0 +1,45 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL:-user@yourdomain.com}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    restart: unless-stopped
+
+  twilio-manager-mcp:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-test}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-test}
+      - ADDRESS_CUSTOMER_NAME=${ADDRESS_CUSTOMER_NAME:-}
+      - ADDRESS_FRIENDLY_NAME=${ADDRESS_FRIENDLY_NAME:-}
+      - ADDRESS_STREET=${ADDRESS_STREET:-}
+      - ADDRESS_CITY=${ADDRESS_CITY:-}
+      - ADDRESS_REGION=${ADDRESS_REGION:-}
+      - ADDRESS_POSTAL_CODE=${ADDRESS_POSTAL_CODE:-}
+      - ADDRESS_ISO_COUNTRY=${ADDRESS_ISO_COUNTRY:-}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.twilio.rule=Host(`${DOMAIN_NAME:-yourdomain.com}`)"
+      - "traefik.http.routers.twilio.entrypoints=websecure"
+      - "traefik.http.routers.twilio.tls.certresolver=myresolver"
+      - "traefik.http.services.twilio.loadbalancer.server.port=8000"
+      # Strip the prefix before forwarding to the service
+      # - "traefik.http.middlewares.strip-twilio-prefix.stripprefix.prefixes=/twilio-manager"
+      # - "traefik.http.routers.twilio.middlewares=strip-twilio-prefix@docker"
+    restart: unless-stopped
+    

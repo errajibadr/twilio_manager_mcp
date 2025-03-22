@@ -1,24 +1,24 @@
 {
-  "mcpServers": {
-    "time_context": { 
-      "command": "uvx", 
-      "args": ["mcp-server-time"] 
-    },
-    "twilio_manager_mcp": {
+  "mcpServers": { 
+    "twilio_manager_mcp_abs": {
       "command": "uv",
-      "args": ["run", "mcp", "run", "./twilio_manager_mcp.py"],
+      "args": ["--directory", "/Users/badrou/repository/twilio_manager_mcp", "run", "mcp", "run", "./twilio_manager_mcp.py"],
       "env": {
-        "TWILIO_ACCOUNT_SID": "AC00000000000000000000000000000000",
-        "TWILIO_AUTH_TOKEN": "00000000000000000000000000000000"
+        "TWILIO_ACCOUNT_SID": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "TWILIO_AUTH_TOKEN": "fc9999Xxxxxx9999X999x99999xxxxxxx"
       }
     },
-    "twilio_manager_mcp_with_twilio": {
-      "command": "uv",
-      "args": ["--with", "twilio", "run", "mcp", "run", "./twilio_manager_mcp.py"],
+    "twilio_manager_mcp_uvx": {
+      "command": "uvx",
+      "args": [ "twilio-manager-mcp" ],
       "env": {
-        "TWILIO_ACCOUNT_SID": "AC00000000000000000000000000000000",
-        "TWILIO_AUTH_TOKEN": "00000000000000000000000000000000"
+        "TWILIO_ACCOUNT_SID": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "TWILIO_AUTH_TOKEN": "fc9999Xxxxxx9999X999x99999xxxxxxx"
       }
+    },
+    "twilio_manager_mcp_sse": {
+      "url": "http://localhost:8000/sse"
+
     }
   }
 }

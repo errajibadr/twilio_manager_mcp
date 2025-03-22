@@ -4,24 +4,7 @@ from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.routing import Mount, Route
 
-from twilio_manager_mcp import mcp
-
-# Initialize SSE transport
-sse = SseServerTransport("/messages")
-
-
-# SSE handlers
-async def handle_sse(scope, receive, send):
-    """Handle SSE connections."""
-    async with sse.connect_sse(scope, receive, send) as streams:
-        await mcp._mcp_server.run(
-            streams[0], streams[1], mcp._mcp_server.create_initialization_options()
-        )
-
-
-async def handle_messages(scope, receive, send):
-    """Handle POST messages."""
-    await sse.handle_post_message(scope, receive, send)
+from twilio_manager_mcp import mcp as mcp_server
 
 
 def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlette:
@@ -49,9 +32,35 @@ def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlett
     )
 
 
+# Initialize the app at module level for uvicorn
+app = create_starlette_app(mcp_server._mcp_server)
+
+# Initialize SSE transport
+sse = SseServerTransport("/messages")
+
+
+# SSE handlers
+async def handle_sse(scope, receive, send):
+    """Handle SSE connections."""
+    async with sse.connect_sse(scope, receive, send) as streams:
+        await mcp_server._mcp_server.run(
+            streams[0], streams[1], mcp_server._mcp_server.create_initialization_options()
+        )
+
+
+async def handle_messages(scope, receive, send):
+    """Handle POST messages."""
+    await sse.handle_post_message(scope, receive, send)
+
+
 if __name__ == "__main__":
-    mcp_server = mcp._mcp_server
+    import argparse
+
     import uvicorn
 
-    app = create_starlette_app(mcp_server)
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", type=str, default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=8000)
+    args = parser.parse_args()
+
+    uvicorn.run(app, host=args.host, port=args.port)
