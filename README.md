@@ -2,6 +2,10 @@
 
 A Model Context Protocol (MCP) implementation for managing Twilio resources. This package provides tools for managing Twilio subaccounts, phone numbers, and regulatory bundles through a standardized MCP interface.
 
+<a href="https://glama.ai/mcp/servers/@errajibadr/twilio_manager_mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@errajibadr/twilio_manager_mcp/badge" alt="TwilioManager MCP server" />
+</a>
+
 ## Features
 
 - List Twilio subaccounts
